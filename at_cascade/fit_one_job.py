@@ -127,6 +127,16 @@ def system_command(command, file_stdout) :
          file_stderr   = None,
          write_command = True,
       )
+def log_to_trace(connection, file_stdout, prefix, message_type_list = ['warning', 'error']) :
+   log_table  = dismod_at.get_table_dict(connection, 'log')
+   #
+   for row in log_table :
+      #
+      if (row['message_type'] in message_type_list) AND (row['message'].startswith(prefix)):
+         #
+         # trace to file_stdout
+         file_stdout.write( row['message'] )
+         file_stdout.flush()
 # ----------------------------------------------------------------------------
 # BEGIN syntax
 # at_cascade.fit_one_job
@@ -370,6 +380,14 @@ def fit_one_job(
       number_simulate
    ]
    system_command(command, file_stdout)
+   #
+   # trace asymptotic statistics failure
+   if file_stdout is not None :
+      log_to_trace(
+         connection  = connection ,
+         file_stdout = file_stdout,
+         prefix      = (f'sample {sample_method}', 'sample_command')
+      )
    #
    # avgint_parent_grid
    at_cascade.avgint_parent_grid(
